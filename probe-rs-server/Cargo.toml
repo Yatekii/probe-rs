@@ -1,0 +1,12 @@
+[package]
+name = "probe-rs-server"
+version = "0.1.0"
+authors = ["Henrik Böving <hargonix@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+jsonrpc-ws-server = "14.2.0"
+jsonrpc-core = "14.2.0"
+jsonrpc-derive = "14.2.1"
+jsonrpc-core-client = "14.2.0"
+probe-rs = { version = "0.8.0", path = "../probe-rs" }
