@@ -538,6 +538,8 @@ pub struct DebugProbeInfo {
     pub vendor_id: u16,
     pub product_id: u16,
     pub serial_number: Option<String>,
+    pub bus_id: Option<u8>,
+    pub port_id: Option<u8>,
     pub probe_type: DebugProbeType,
 }
 
@@ -565,6 +567,8 @@ impl DebugProbeInfo {
         product_id: u16,
         serial_number: Option<String>,
         probe_type: DebugProbeType,
+        bus_id: Option<u8>,
+        port_id: Option<u8>,
     ) -> Self {
         Self {
             identifier: identifier.into(),
@@ -572,6 +576,8 @@ impl DebugProbeInfo {
             product_id,
             serial_number,
             probe_type,
+            port_id,
+            bus_id,
         }
     }
 
@@ -585,7 +591,7 @@ impl DebugProbeInfo {
 pub enum DebugProbeSelectorParseError {
     #[error("The VID or PID could not be parsed: {0}")]
     ParseInt(#[from] std::num::ParseIntError),
-    #[error("Please use a string in the form `VID:PID:<Serial>` where Serial is optional.")]
+    #[error("Please use a string in the form `VID:PID:<Serial>` where Serial is optional, or `VID:PID:BUS_ID:PORT_ID`")]
     Format,
 }
 
@@ -593,10 +599,16 @@ pub enum DebugProbeSelectorParseError {
 ///
 /// Construct this from a set of info or from a string.
 ///
-/// Example:
+/// Example with serial number:
 /// ```
 /// use std::convert::TryInto;
 /// let selector: probe_rs::DebugProbeSelector = "1337:1337:SERIAL".try_into().unwrap();
+/// ```
+///
+/// Example with Bus and Port number (DAPLink at Bus 3, Port 1):
+/// ```
+/// use std::convert::TryInto;
+/// let selector: probe_rs::DebugProbeSelector = "0d28:0204:3:1".try_into().unwrap();
 /// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(try_from = "String")] //We need this so that serde will first converst from the string `PID:VID:<Serial>` to a struct before deserializing
@@ -604,6 +616,8 @@ pub struct DebugProbeSelector {
     pub vendor_id: u16,
     pub product_id: u16,
     pub serial_number: Option<String>,
+    pub bus_number: Option<u8>,
+    pub port_number: Option<u8>,
 }
 
 impl TryFrom<&str> for DebugProbeSelector {
@@ -615,6 +629,8 @@ impl TryFrom<&str> for DebugProbeSelector {
                 vendor_id: u16::from_str_radix(split[0], 16)?,
                 product_id: u16::from_str_radix(split[1], 16)?,
                 serial_number: None,
+                bus_number: None,
+                port_number: None,
             }
         } else {
             return Err(DebugProbeSelectorParseError::Format);
@@ -622,6 +638,11 @@ impl TryFrom<&str> for DebugProbeSelector {
 
         if split.len() == 3 {
             selector.serial_number = Some(split[2].to_string());
+        }
+
+        if split.len() == 4 {
+            selector.bus_number = Some(u8::from_str_radix(split[2], 16)?);
+            selector.port_number = Some(u8::from_str_radix(split[3], 16)?);
         }
 
         Ok(selector)
@@ -648,6 +669,8 @@ impl From<DebugProbeInfo> for DebugProbeSelector {
             vendor_id: selector.vendor_id,
             product_id: selector.product_id,
             serial_number: selector.serial_number,
+            bus_number: None,
+            port_number: None,
         }
     }
 }
@@ -658,6 +681,8 @@ impl From<&DebugProbeInfo> for DebugProbeSelector {
             vendor_id: selector.vendor_id,
             product_id: selector.product_id,
             serial_number: selector.serial_number.clone(),
+            bus_number: None,
+            port_number: None,
         }
     }
 }
