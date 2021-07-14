@@ -1,5 +1,6 @@
 pub mod argument_handling;
 pub mod logging;
+pub mod flash;
 
 use cargo_toml::Manifest;
 use serde::Deserialize;
@@ -14,6 +15,7 @@ use std::{
 // Re-export crates to avoid version conflicts in the dependent crates.
 pub use indicatif;
 pub use log;
+pub use structopt;
 
 #[derive(Debug, Error)]
 pub enum ArtifactError {
