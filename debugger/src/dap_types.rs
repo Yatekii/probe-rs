@@ -8,6 +8,20 @@ use std::convert::TryFrom;
 
 schemafy!(root: debugserver_types "src/debugProtocol.json");
 
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct RttEventBody {
+    pub channel: usize,
+    pub format: crate::rtt::channel::DataFormat,
+    #[doc = " RTT output"]
+    pub data: String,
+}
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct ShowMessageEventBody {
+    /// The `severity` field can be one of "information", "warning", or "error"
+    pub severity: String,
+    pub message: String,
+}
+
 impl TryFrom<&serde_json::Value> for ReadMemoryArguments {
     fn try_from(arguments: &serde_json::Value) -> Result<Self, Self::Error> {
         let count = get_int_argument(arguments, "count", 1)?;
