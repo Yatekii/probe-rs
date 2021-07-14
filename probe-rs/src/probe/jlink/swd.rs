@@ -1091,6 +1091,36 @@ impl<Probe: RawSwdIo + 'static> RawDapAccess for Probe {
 
         Ok(())
     }
+
+    fn swj_pins(
+        &mut self,
+        _pin_out: u32,
+        _pin_select: u32,
+        _pin_wait: u32,
+    ) -> Result<u32, DebugProbeError> {
+        todo!()
+    }
+
+    fn into_probe(self: Box<Self>) -> Box<dyn crate::DebugProbe> {
+        todo!()
+    }
+
+    fn swj_sequence(&mut self, bit_len: u8, mut bits: u64) -> Result<(), DebugProbeError> {
+        let mut io_sequence = IoSequence::new();
+
+        for _ in 0..bit_len {
+            io_sequence.add_output(bits & 1 == 1);
+
+            bits >>= 1;
+        }
+
+        self.swd_io(
+            io_sequence.direction_bits().to_owned(),
+            io_sequence.io_bits().to_owned(),
+        )?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
